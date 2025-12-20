@@ -1,201 +1,124 @@
+import { useEffect, useState } from 'react'
+import { apiClient } from '../lib/apiClient'
 
-import { Button } from "@/components/ui/button";
-import { 
-  Wrench, 
-  Monitor, 
-  Cpu, 
-  Truck, 
-  HardDrive, 
-  Network,
-  Shield,
-  Zap,
-  Clock,
-  CheckCircle,
-  ArrowRight,
-  Phone,
-  MessageCircle
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+export default function ServicesPage() {
+  const [services, setServices] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
 
-const services = [
-  {
-    icon: Wrench,
-    title: "Hardware Repair",
-    description: "Expert diagnosis and repair for laptops, desktops, and all peripherals. We fix screens, keyboards, motherboards, and more.",
-    features: ["Screen replacement", "Keyboard repair", "Battery replacement", "Motherboard repair", "Port repairs"],
-    color: "bg-blue-500/10 text-blue-600",
-    price: "Starting ₹500",
-  },
-  {
-    icon: Monitor,
-    title: "Software Services",
-    description: "Complete software solutions including OS installation, virus removal, driver updates, and system optimization.",
-    features: ["OS installation", "Virus removal", "Software setup", "Driver updates", "Performance tuning"],
-    color: "bg-green-500/10 text-green-600",
-    price: "Starting ₹300",
-  },
-  {
-    icon: Cpu,
-    title: "Custom PC Builds",
-    description: "Build your dream PC with our expert guidance. Gaming rigs, workstations, or everyday computers tailored to your needs.",
-    features: ["Component selection", "Assembly & testing", "Cable management", "BIOS optimization", "Warranty support"],
-    color: "bg-purple-500/10 text-purple-600",
-    price: "Starting ₹2,000",
-  },
-  {
-    icon: Truck,
-    title: "On-site Support",
-    description: "Can't bring your computer to us? We'll come to you! On-site repairs and installations for homes and businesses.",
-    features: ["Home visits", "Office support", "Network setup", "System migration", "Training"],
-    color: "bg-orange-500/10 text-orange-600",
-    price: "Starting ₹800",
-  },
-  {
-    icon: HardDrive,
-    title: "Data Recovery",
-    description: "Lost your precious data? Our experts can recover files from damaged, corrupted, or formatted drives.",
-    features: ["HDD recovery", "SSD recovery", "Flash drive recovery", "RAID recovery", "Deleted file recovery"],
-    color: "bg-red-500/10 text-red-600",
-    price: "Starting ₹1,500",
-  },
-  {
-    icon: Network,
-    title: "Network Setup",
-    description: "Complete networking solutions for home and business. WiFi setup, LAN installation, and security configuration.",
-    features: ["WiFi setup", "LAN cabling", "Router config", "Security setup", "VPN configuration"],
-    color: "bg-cyan-500/10 text-cyan-600",
-    price: "Starting ₹1,000",
-  },
-];
+  useEffect(() => {
+    fetchData()
+  }, [selectedCategory])
 
-const whyChooseUs = [
-  { icon: Shield, title: "Certified Technicians", description: "All our technicians are certified and experienced" },
-  { icon: Zap, title: "Fast Turnaround", description: "Most repairs completed within 24-48 hours" },
-  { icon: Clock, title: "Flexible Hours", description: "Open 7 days a week for your convenience" },
-  { icon: CheckCircle, title: "Quality Guarantee", description: "90-day warranty on all repairs" },
-];
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [servicesRes, categoriesRes] = await Promise.all([
+        apiClient.getServices({ category_id: selectedCategory || undefined }),
+        apiClient.getServiceCategories()
+      ])
 
-const Services = () => {
+      if (servicesRes.success && servicesRes.data) {
+        setServices(servicesRes.data)
+      } else {
+        setError(servicesRes.message || 'Failed to fetch services')
+      }
+
+      if (categoriesRes.success && categoriesRes.data) {
+        setCategories(categoriesRes.data)
+      }
+    } catch (err) {
+      setError(String(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <>
-      {/* Page Header */}
-      <section className="gradient-hero py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
-            Our Services
-          </h1>
-          <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-            Complete computer services for all your technology needs. From repairs to custom builds, we've got you covered.
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white shadow-sm mb-12">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold text-gray-900">Our Services</h1>
+          <p className="text-gray-600 mt-2">Professional services tailored to your needs</p>
         </div>
-      </section>
+      </div>
 
-      {/* Services Grid */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => (
-              <div
-                key={service.title}
-                className={cn(
-                  "p-6 bg-card rounded-xl border border-border",
-                  "hover:shadow-card hover:border-primary/20 transition-all duration-300",
-                  "animate-fade-in-up"
+      <div className="max-w-7xl mx-auto px-4 pb-12">
+        {/* Category Filter */}
+        <div className="mb-8 flex gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              selectedCategory === null
+                ? 'bg-blue-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:border-blue-300'
+            }`}
+          >
+            All Services
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                selectedCategory === cat.id
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:border-blue-300'
+              }`}
+            >
+              {cat.category_name}
+            </button>
+          ))}
+        </div>
+
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <p className="text-gray-600 mt-4">Loading services...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-600">⚠️ {error}</p>
+          </div>
+        )}
+
+        {!loading && services.length === 0 && !error && (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">No services found</p>
+          </div>
+        )}
+
+        {!loading && services.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((service) => (
+              <div key={service.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
+                {service.service_image_url && (
+                  <div className="w-full h-40 bg-gray-200 rounded-lg overflow-hidden mb-4">
+                    <img
+                      src={service.service_image_url}
+                      alt={service.service_name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 )}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className={cn("h-14 w-14 rounded-xl flex items-center justify-center mb-4", service.color)}>
-                  <service.icon className="h-7 w-7" />
-                </div>
-                
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                  {service.title}
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {service.service_name}
                 </h3>
-                
-                <p className="text-muted-foreground mb-4">
+                <p className="text-gray-600 text-sm mb-4">
                   {service.description}
                 </p>
-
-                <ul className="space-y-2 mb-4">
-                  {service.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
-                      <CheckCircle className="h-4 w-4 text-primary" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="pt-4 border-t border-border flex items-center justify-between">
-                  <span className="font-semibold text-primary">{service.price}</span>
-                  <Button size="sm" variant="outline">
-                    Learn More
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors">
+                  Learn More
+                </button>
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Why Choose Us */}
-      <section className="py-16 gradient-subtle">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <span className="inline-block px-4 py-1.5 bg-primary/10 rounded-full text-primary text-sm font-medium mb-4">
-              Why Choose Us
-            </span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-              Your Trusted Tech Partner
-            </h2>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {whyChooseUs.map((item, index) => (
-              <div
-                key={item.title}
-                className="text-center p-6 bg-card rounded-xl border border-border"
-              >
-                <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="h-7 w-7 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-              Ready to Get Started?
-            </h2>
-            <p className="text-muted-foreground mb-8">
-              Contact us today for a free consultation. Our experts are ready to help with all your computer needs.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="gradient-primary" asChild>
-                <a href="tel:+919876543210">
-                  <Phone className="mr-2 h-5 w-5" />
-                  Call: +91 98765 43210
-                </a>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  WhatsApp Us
-                </a>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
-  );
-};
-
-export default Services;
+        )}
+      </div>
+    </div>
+  )
+}
