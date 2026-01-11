@@ -90,7 +90,7 @@ app.post('/api/upload/:type', upload.single('image'), (req: Request, res: Respon
       return res.status(400).json({ success: false, message: 'No file uploaded' })
     }
 
-    const imageUrl = `http://localhost:5000/uploads/${req.params.type}/${req.file.filename}`
+    const imageUrl = `${process.env.BACKEND_URL || `http://localhost:${PORT}`}/uploads/${req.params.type}/${req.file.filename}`
 
     res.json({
       success: true,
